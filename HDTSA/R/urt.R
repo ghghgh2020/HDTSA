@@ -1,38 +1,44 @@
-#' You can use this r code function to test unit root series
-#' @title onedimensionUR
+#' You can use this r code function urt to test for the existence of unit roots
+#' @title urt
 #' @details
-#' @param Z a time series
-#' @param K0_vec lag K0 vector, if missing we use K0_vec=c(1,2,3,4,5)
-#' @param con_vec constant vector for ck
-#' @return A dataframe "1" means we reject the null hypothesis.
+#' @param Z input one dimensional time series
+#' @param K0_vec lag K0 vector, if missing, the default value we choose K0_vec=c(0,1,2,3,4)
+#' @param con_vec constant vector for ck, if missing, the default value we use 0.55
+#' @param alpha significance level
+#' @return A dataframe, "1" means we reject the null hypothesis and "0" means we do not reject the null hypothesis
 #' @export
-#' @import stats
-#' @importFrom stats dpois
+#' @import tseries, sandwich
+#' @importFrom tseries, sandwich
 #' @examples
 #' N=100
 #' Z=arima.sim(list(ar=c(0.9)), n = 2*N, sd=sqrt(1))
-#' con_vec=c(0,0.45,0.55,0.65)
-#' onedimensionUR(Z, con_vec=con_vec)
+#' con_vec=c(0.45,0.55,0.65)
+#' K0_vec=c(0,1,2)
+#' urt(Z,K0_vec=K0_vec, con_vec=con_vec,alpha=0.05)
+#' urt(Z,alpha=0.05)
 
 
-onedimensionUR <- function(Z, K0_vec, con_vec=con_vec) {
+urt <- function(Z, K0_vec=K0_vec, con_vec=con_vec, alpha=alpha) {
 
-  args = as.list(match.call())
-  if(is.null(args$K0_vec)){
-      K0_vec=c(1,2,3,4,5);
-  }
-  require(tseries)                      ## kpss package
-  require(sandwich)                     ## long-run variance package
+     args = as.list(match.call())
+     if(is.null(args$K0_vec)){
+      K0_vec=c(0,1,2,3,4);
+     }
+     args = as.list(match.call())
+     if(is.null(args$con_vec)){
+       con_vec=0.55;
+     }
+     require(tseries)                      ## kpss package
+     require(sandwich)                     ## long-run variance package
 
-  if(con_vec[1]!=0){
-  	print("Untruncated needs constant equals to 0");  break ;             ## untruncated needs con_vec equals to 0
-  }
-  Tnvec=NULL;
-    nm=NULL;
+#  if(con_vec[1]!=0){
+#  	print("Untruncated needs constant equals to 0");  break ;             ## untruncated needs con_vec equals to 0
+#  }
+  Tnvec=NULL; nm=NULL;
 for(kk in 1:length(K0_vec)){
 
-  K0=K0_vec[kk]
-  nm=c(nm,paste("K0=", K0, sep=""))
+  K0=K0_vec[kk]+1                       #eg. K0=1, gamma(0)
+  nm=c(nm,paste("K0=", K0-1, sep=""))
 
   n=length(Z)                           ## sample size
   N=floor(n/2)
@@ -41,7 +47,7 @@ for(kk in 1:length(K0_vec)){
   sgn_matrix=matrix(0,N1,K0)            ### sign matrix
   for(t in 1:N1){
     for(k in 1:K0){
-      sgn_matrix[t,k]=sign(k+t-N-1-0.5) ##
+      sgn_matrix[t,k]=sign(k+t-N-1-0.5) ##  eg. K0=1, gamma(0)
     }
   }
 
@@ -87,24 +93,24 @@ for(kk in 1:length(K0_vec)){
 
   ## test procedure
 
-  kappa=2/(ratio_Var*bb);                       ## kappa
-  if(lr_Qt>0){                                  ## variance >0
-    cv=1.645*sqrt(lr_Qt)+T1
-     Tnvec=c(Tnvec,T2>cv)                       ## no truncated
-    for(tt in 2:length(con_vec)){
+  kappa=2/(ratio_Var*bb);                          ## kappa
+  if(lr_Qt>0){                                     ## variance >0
+     #cv=qnorm(1-alpha)*sqrt(lr_Qt)+T1
+     #Tnvec=c(Tnvec,T2>cv)                         ## no truncated
+    for(tt in 1:length(con_vec)){
       ck=con_vec[tt]
       if (au_Ratio<=(ck*kappa*N^{3/5})){
-        th_d=10^5                               ## truncated belongs to H0
-      }  else{th_d=0.1*log(N)}                  ## truncated belongs to H1
+        th_d=10^5                                  ## truncated belongs to H0
+      }  else{th_d=0.1*log(N)}                     ## truncated belongs to H1
 
       cv=min(1.645*sqrt(lr_Qt)+T1, th_d)
       Tnvec=c(Tnvec, T2>cv)
     }
   }
 }
-  res.table=matrix(as.numeric(Tnvec), length(K0_vec), byrow=T)
-  rownames(res.table)=nm #c("K0=1", "K0=2")
-  return(list(result=res.table))
+    res.table=matrix(as.numeric(Tnvec), length(K0_vec), byrow=T)
+    rownames(res.table)=nm        #rownames ("K0=1", "K0=2")
+    return(list(result=res.table))
 
 }
 
