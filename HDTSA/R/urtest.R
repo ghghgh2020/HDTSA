@@ -1,5 +1,5 @@
 #' You can use this r code function urt to test for the existence of unit roots
-#' @title urt
+#' @title ur.test
 #' @details
 #' @param Z input one dimensional time series
 #' @param K0_vec lag K0 vector, if missing, the default value we choose K0_vec=c(0,1,2,3,4)
@@ -14,11 +14,11 @@
 #' Z=arima.sim(list(ar=c(0.9)), n = 2*N, sd=sqrt(1))
 #' con_vec=c(0.45,0.55,0.65)
 #' K0_vec=c(0,1,2)
-#' urt(Z,K0_vec=K0_vec, con_vec=con_vec,alpha=0.05)
-#' urt(Z,alpha=0.05)
+#' ur.test(Z,K0_vec=K0_vec, con_vec=con_vec,alpha=0.05)
+#' ur.test(Z,alpha=0.05)
 
 
-urt <- function(Z, K0_vec=K0_vec, con_vec=con_vec, alpha=alpha) {
+ur.test <- function(Z, K0_vec=K0_vec, con_vec=con_vec, alpha=alpha) {
 
      args = as.list(match.call())
      if(is.null(args$K0_vec)){
