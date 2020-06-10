@@ -7,8 +7,8 @@
 #' @param alpha significance level
 #' @return A dataframe, "1" means we reject the null hypothesis and "0" means we do not reject the null hypothesis
 #' @export
-#' @import tseries, sandwich
-#' @importFrom tseries, sandwich
+#' @import tseries
+#' @import sandwich
 #' @examples
 #' N=100
 #' Z=arima.sim(list(ar=c(0.9)), n = 2*N, sd=sqrt(1))
